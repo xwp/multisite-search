@@ -93,6 +93,17 @@ multisite_search()
 	->register_component( new \MultisiteSearch\View\Network_Admin_Menu() );
 
 /**
+ * Add CLI components.
+ */
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	require_once __DIR__ . '/php/Admin/class-database.php';
+
+	WP_CLI::add_command( 'multisite-search', '\\MultisiteSearch\\CLI\\Table' );
+	WP_CLI::add_command( 'multisite-search', '\\MultisiteSearch\\CLI\\Index' );
+	WP_CLI::add_command( 'multisite-search', '\\MultisiteSearch\\CLI\\Command' );
+}
+
+/**
  * Sometimes we need to do some things after the plugin is loaded, so call the PluginInterface::plugin_loaded().
  */
 add_action( 'plugins_loaded', array( multisite_search(), 'plugin_loaded' ) );
