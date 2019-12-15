@@ -46,6 +46,6 @@ class Command {
 		$results  = $search->query( $keywords, $args );
 
 		// @TODO: Remove this one you figured out what to do with it.
-		\WP_CLI::success( print_r( $results, true ) );
+		\WP_CLI::success( print_r( $results, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
 	}
 }

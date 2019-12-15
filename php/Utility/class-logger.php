@@ -29,7 +29,7 @@ class Logger {
 	 */
 	private static function debug_log( $message ) {
 		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			error_log( $message );
+			error_log( $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
 		}
 	}
 
