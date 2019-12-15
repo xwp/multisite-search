@@ -8,6 +8,8 @@
 
 namespace MultisiteSearch\Admin;
 
+use \MultisiteSearch\Utility\Logger;
+
 /**
  * Database maintainance class.
  */
@@ -35,45 +37,100 @@ class Index {
 
 		$query = new \WP_Query( $args );
 
-		\WP_CLI::success( "Indexing Site: $blog_id" );
+		Logger::log( "Indexing Site: $blog_id" );
 
 		if ( $query->have_posts() ) {
 			while ( $query->have_posts() ) {
 				$query->the_post();
+				$this->index_post( $blog_id, $query->post );
+			}
+		}
 
-				if ( $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-					$wpdb->multisite_search,
-					array(
-						'blog_id'               => $blog_id,
-						'post_id'               => $query->post->ID,
-						'url'                   => $query->post->uuid,
-						'slug'                  => $query->post->post_name,
-						'post_title'            => get_the_title(),
-						'post_content'          => str_replace( "\n\n", "\n", wp_strip_all_tags( do_shortcode( get_the_content() ) ) ),
-						'required_capabilities' => '',
-						'meta'                  => '',
-					),
-					array(
-						'%d',
-						'%d',
-						'%s',
-						'%s',
-						'%s',
-						'%s',
-						'%s',
-						'%s',
-					)
-				) ) {
-					\WP_CLI::success( '.' );
-				} else {
-					$duplicate = strpos( $wpdb->last_error, 'Duplicate' ) !== false;
-					if ( ! $duplicate ) {
-						\WP_CLI::error( $wpdb->last_error );
-					} else {
-						// Todo: Add hash to update existing entries.
-						\WP_CLI::success( 'Skipping duplicate entries.' );
-					}
-				}
+		restore_current_blog();
+	}
+
+	/**
+	 * Add a given post to the Multisite Search Index.
+	 *
+	 * @param int  $blog_id The site to index.
+	 * @param int  $post_id The post to index.
+	 * @param bool $update Skip insert.
+	 *
+	 * @return void
+	 */
+	public function index_post( $blog_id, $post_id, $update = false ) {
+
+		global $wpdb;
+
+		switch_to_blog( $blog_id );
+
+		if ( $post_id instanceof \WP_Post ) {
+			$post = $post_id;
+		} else {
+			$post = get_post( (int) $post_id );
+		}
+
+		if ( \is_wp_error( $post ) ) {
+			return;
+		}
+
+		Logger::log( "Indexing Site: $blog_id, Post: $post->ID" );
+
+		$data = array(
+			'blog_id'               => $blog_id,
+			'post_id'               => $post->ID,
+			'url'                   => $post->uuid,
+			'slug'                  => $post->post_name,
+			'post_title'            => $post->post_title,
+			'post_content'          => str_replace( "\n\n", "\n", wp_strip_all_tags( do_shortcode( $post->post_content ) ) ),
+			'required_capabilities' => '',
+			'meta'                  => '',
+		);
+
+		$where = array(
+			'blog_id' => $blog_id,
+			'post_id' => $post->ID,
+		);
+
+		$where_format = array(
+			'%d',
+			'%d',
+		);
+
+		$format = array(
+			'%d',
+			'%d',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+			'%s',
+		);
+
+		if ( ! $update && $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->multisite_search,
+			$data,
+			$format
+		) ) {
+			Logger::success( '.' );
+		} else {
+
+			array_shift( $data );
+			array_shift( $data );
+			array_shift( $format );
+			array_shift( $format );
+
+			if ( $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->multisite_search,
+				$data,
+				$where,
+				$format,
+				$where_format
+			) ) {
+				Logger::success( '.' );
+			} else {
+				Logger::log( empty( $wpdb->last_error ) ? 'Nothing to update.' : $wpdb->last_error );
 			}
 		}
 
