@@ -60,13 +60,18 @@ class Search extends ComponentAbstract {
 	 */
 	public function handle_search_request( \WP_REST_Request $r ) {
 
-		$content = array(
-			'a' => 'AA',
-			'b' => 'BB',
-			'q' => $r->get_param( 'q' ),
+		$args = array(
+			'per_page' => ! empty( $r->get_param( 'per_page' ) ) ? $r->get_param( 'per_page' ) : 100,
+			'page'     => ! empty( $r->get_param( 'page' ) ) ? $r->get_param( 'page' ) : 0,
+			'q'        => $r->get_param( 'q' ),
 		);
 
-		return rest_ensure_response( $content );
+		$keywords = ! empty( $r->get_param( 'q' ) ) ? $r->get_param( 'q' ) : '';
+
+		$search  = new \MultisiteSearch\Utility\Search();
+		$results = $search->query( $keywords, $args );
+
+		return rest_ensure_response( $results );
 	}
 
 }

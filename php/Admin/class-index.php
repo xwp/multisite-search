@@ -64,7 +64,7 @@ class Index {
 						'%s',
 					)
 				) ) {
-					\WP_CLI::success( "Indexed site $blog_id post $query->post->ID." );
+					\WP_CLI::success( '.' );
 				} else {
 					$duplicate = strpos( $wpdb->last_error, 'Duplicate' ) !== false;
 					if ( ! $duplicate ) {

@@ -28,11 +28,22 @@ class Search {
 
 		global $wpdb;
 
+		// Make terms a bit more fuzzy.
+		$keywords = implode(
+			' ',
+			array_map(
+				function( $keyword ) {
+					return "*$keyword*";
+				},
+				explode( ' ', $keywords )
+			)
+		);
+
 		$record_count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
 				"
                 SELECT COUNT(*) FROM $wpdb->multisite_search
-                WHERE MATCH (post_title,post_content) AGAINST (%s)
+                WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE)
                 ",
 				$keywords
 			)
@@ -41,9 +52,9 @@ class Search {
 		$posts = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
 				"
-                SELECT *, SUM(MATCH (post_title,post_content) AGAINST (%s)) as score
+                SELECT *, SUM(MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE)) as score
                 FROM $wpdb->multisite_search
-                WHERE MATCH (post_title,post_content) AGAINST (%s)
+                WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE)
                 GROUP BY blog_id, post_id, url, slug, post_title, post_content, required_capabilities, meta, post_type
                 ORDER BY score DESC
                 LIMIT %d, %d;
@@ -53,6 +64,17 @@ class Search {
 				// $wpdb->prepare takes care of sanitization here.
 				$args['page'] * $args['per_page'],
 				$args['per_page']
+			)
+		);
+
+		// Make terms a bit less fuzzy.
+		$keywords = implode(
+			' ',
+			array_map(
+				function( $keyword ) {
+					return trim( $keyword, '*' );
+				},
+				explode( ' ', $keywords )
 			)
 		);
 
