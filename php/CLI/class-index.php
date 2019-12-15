@@ -21,7 +21,15 @@ class Index {
 	 * @param mixed $args The args.
 	 * @return void
 	 */
-	public function generate_index( $args ) {
-		\WP_CLI::success( 'Todo' );
+	public function generate( $args ) {
+
+		if ( function_exists( 'get_sites' ) && class_exists( 'WP_Site_Query' ) ) {
+			$sites = get_sites();
+			foreach ( $sites as $site ) {
+				$indexer = new \MultisiteSearch\Admin\Index();
+				$indexer->index_site( $site->blog_id );
+			}
+			return;
+		}
 	}
 }

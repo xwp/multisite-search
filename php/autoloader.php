@@ -48,7 +48,7 @@ spl_autoload_register(
 		$file = $directory . DIRECTORY_SEPARATOR . $class_trait . $file . '.php';
 
 		if ( file_exists( $file ) ) {
-			require_once( $file );
+			require_once $file;
 		}
 	}
 );

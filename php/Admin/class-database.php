@@ -14,30 +14,46 @@ namespace MultisiteSearch\Admin;
 class Database {
 
 	const VERSION = '0.1';
-	const TABLE   = 'multisite_search';
 
+	/**
+	 * Create new table for Multisite Search.
+	 *
+	 * @return void
+	 */
 	public function create_index_table() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . self::TABLE;
-
 		$chatset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE $table_name (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-            name tinytext NOT NULL,
-            text text NOT NULL,
-            PRIMARY KEY  (id)
+		$sql = "CREATE TABLE $wpdb->multisite_search (
+            blog_id bigint(20) NOT NULL,
+            post_id bigint(20) NOT NULL,
+            url text NOT NULL,
+            slug text NOT NULL,
+            post_title text NOT NULL,
+            post_content longtext NOT NULL,
+            required_capabilities longtext NOT NULL,
+            meta longtext,
+            post_type varchar(20) NOT NULL,
+            PRIMARY KEY  (blog_id, post_id),
+            FULLTEXT  (post_title,post_content),
+            FULLTEXT  (required_capabilities),
+            KEY  (post_type)
         ) $chatset_collate;";
 
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$result = dbdelta( $sql );
 	}
 
+	/**
+	 * Drop the entire table.
+	 *
+	 * WARNING: Can't be undone.
+	 *
+	 * @return void
+	 */
 	public function drop_index_table() {
 		global $wpdb;
-		$table_name_prepared = $wpdb->prefix . self::TABLE;
-		$wpdb->query( 'DROP TABLE IF EXISTS ' . $table_name_prepared ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->multisite_search" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 }

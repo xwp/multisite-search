@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Setup the plugin auto loader.
-require_once( 'php/autoloader.php' );
+require_once 'php/autoloader.php';
 
 /**
  * Admin notice for incompatible versions of PHP.
@@ -86,6 +86,12 @@ multisite_search()
 	->set_url( plugin_dir_url( __FILE__ ) );
 
 /**
+ * Add our table to the global $wpdb object so that we don't get errors with ->prepare().
+ */
+global $wpdb;
+$wpdb->multisite_search = $wpdb->base_prefix . 'multisite_search';
+
+/**
  * Register plugin components.
  */
 multisite_search()
@@ -98,8 +104,8 @@ multisite_search()
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once __DIR__ . '/php/Admin/class-database.php';
 
-	WP_CLI::add_command( 'multisite-search', '\\MultisiteSearch\\CLI\\Table' );
-	WP_CLI::add_command( 'multisite-search', '\\MultisiteSearch\\CLI\\Index' );
+	WP_CLI::add_command( 'multisite-search table', '\\MultisiteSearch\\CLI\\Table' );
+	WP_CLI::add_command( 'multisite-search index', '\\MultisiteSearch\\CLI\\Index' );
 	WP_CLI::add_command( 'multisite-search', '\\MultisiteSearch\\CLI\\Command' );
 }
 
@@ -109,4 +115,4 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 add_action( 'plugins_loaded', array( multisite_search(), 'plugin_loaded' ) );
 
 // Add convenience functions.
-require_once( 'php/functions.php' );
+require_once 'php/functions.php';

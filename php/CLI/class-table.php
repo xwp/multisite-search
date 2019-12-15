@@ -23,7 +23,7 @@ class Table {
 	 * @param array $args The args.
 	 * @return void
 	 */
-	public function create_index_table( $args ) {
+	public function create( $args ) {
 		$db = new \MultisiteSearch\Admin\Database();
 		$db->create_index_table();
 		\WP_CLI::success( 'Created Multisite Search Index.' );
@@ -39,7 +39,7 @@ class Table {
 	 * @param array $args The args.
 	 * @return void
 	 */
-	public function drop_index_table( $args ) {
+	public function drop( $args ) {
 		$db = new \MultisiteSearch\Admin\Database();
 		$db->drop_index_table();
 		\WP_CLI::success( 'Dropped Multisite Search Index.' );
