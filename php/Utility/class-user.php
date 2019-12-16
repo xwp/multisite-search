@@ -132,7 +132,7 @@ class User {
 				)
 			);
 			$caps    = self::process_caps( $results, $ignore_core_capabilities );
-			wp_cache_set( $cache_key, $caps, 'multisite_search', rand( 5 * MINUTE_IN_SECONDS, 15 * MINUTE_IN_SECONDS ) );
+			wp_cache_set( $cache_key, $caps, 'multisite_search', wp_rand( 5 * MINUTE_IN_SECONDS, 15 * MINUTE_IN_SECONDS ) );
 		}
 
 		return $as_string ? implode( $glue, $caps ) : $caps;
