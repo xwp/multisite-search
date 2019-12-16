@@ -39,13 +39,18 @@ class Search extends ComponentAbstract {
 	public function rest_api_init() {
 		$base = $this->plugin->get_slug() . "/{$this->version}";
 
+		// Prepare endpoint with current user's non-core capabilities.
+		$user_caps = \MultisiteSearch\Utility\User::get_capabilities();
+
 		register_rest_route(
 			$base,
 			'search',
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'handle_search_request' ),
-				'args'                => array(),
+				'args'                => array(
+					'user_caps' => $user_caps,
+				),
 				'permission_callback' => '__return_true',
 			)
 		);
@@ -59,7 +64,6 @@ class Search extends ComponentAbstract {
 	 * @return mixed|\WP_REST_Response
 	 */
 	public function handle_search_request( \WP_REST_Request $r ) {
-
 		$args = array(
 			'per_page' => ! empty( $r->get_param( 'per_page' ) ) ? $r->get_param( 'per_page' ) : 100,
 			'page'     => ! empty( $r->get_param( 'page' ) ) ? $r->get_param( 'page' ) : 0,
@@ -69,9 +73,10 @@ class Search extends ComponentAbstract {
 		$keywords = ! empty( $r->get_param( 'q' ) ) ? $r->get_param( 'q' ) : '';
 
 		$search  = new \MultisiteSearch\Utility\Search();
-		$results = $search->query( $keywords, $args );
+		$results = $search->query( $keywords, $args, $r->get_attributes()['args']['user_caps'] );
+
+		$results = \apply_filters( 'mss_search_results', $results, $keywords, $args );
 
 		return rest_ensure_response( $results );
 	}
-
 }

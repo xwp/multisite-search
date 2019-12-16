@@ -18,15 +18,34 @@ class Search {
 	 *
 	 * @param string $keywords Keywords to search.
 	 * @param array  $args Search options.
+	 * @param string $caps Calculated user capabilities.
 	 *
 	 * @return mixed
 	 */
-	public function query( $keywords, $args = array(
-		'per_page' => 100,
-		'page'     => 0,
-	) ) {
+	public function query(
+		$keywords,
+		$args = array(
+			'per_page' => 100,
+			'page'     => 0,
+		),
+		$caps = ''
+	) {
 
 		global $wpdb;
+
+		$caps = empty( $caps ) ? \MultisiteSearch\Utility\User::get_capabilities() : $caps;
+
+		/**
+		 * We need at least an site admin cap if its empty to avoid protected content from showing.
+		 * Passing an empty regex will mats ANYTHING, which breaks the protected content. Using
+		 * `manage_sites` doesn't do anything except prevent REGEXP from doing what its not meant to.
+		 */
+		if ( empty( $caps ) ) {
+			$caps = 'manage_sites';
+		}
+
+		// Convert capabilities for REGEXP.
+		$caps = '(' . str_replace( ',', '|', $caps ) . ')';
 
 		// Make terms a bit more fuzzy.
 		$keywords = implode(
@@ -43,9 +62,13 @@ class Search {
 			$wpdb->prepare(
 				"
                 SELECT COUNT(*) FROM $wpdb->multisite_search
-                WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE)
+				WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE) AND (
+                    required_capabilities = '' OR
+                    required_capabilities REGEXP %s
+                )
                 ",
-				$keywords
+				$keywords,
+				$caps
 			)
 		);
 
@@ -54,13 +77,17 @@ class Search {
 				"
                 SELECT *, SUM(MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE)) as score
                 FROM $wpdb->multisite_search
-                WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE)
+                WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE) AND (
+                    required_capabilities = '' OR
+                    required_capabilities REGEXP %s
+                )
                 GROUP BY blog_id, post_id, url, slug, post_title, post_content, required_capabilities, meta, post_type
                 ORDER BY score DESC
                 LIMIT %d, %d;
                 ",
 				$keywords,
 				$keywords,
+				$caps,
 				// $wpdb->prepare takes care of sanitization here.
 				$args['page'] * $args['per_page'],
 				$args['per_page']

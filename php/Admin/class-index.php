@@ -79,13 +79,13 @@ class Index {
 		$data = array(
 			'blog_id'               => $blog_id,
 			'post_id'               => $post->ID,
-			'url'                   => $post->guid,
+			'url'                   => \apply_filters( 'mss_index_url', $post->guid, $post ),
 			'slug'                  => $post->post_name,
 			'post_title'            => $post->post_title,
 			'post_content'          => str_replace( "\n\n", "\n", wp_strip_all_tags( do_shortcode( $post->post_content ) ) ),
 			'post_type'             => $post->post_type,
-			'required_capabilities' => \apply_filters( 'mss_index_required_capabilities', '' ),
-			'meta'                  => \apply_filters( 'mss_index_meta', '' ),
+			'required_capabilities' => \apply_filters( 'mss_index_required_capabilities', '', $post ),
+			'meta'                  => \apply_filters( 'mss_index_meta', '', $post ),
 		);
 
 		$where = array(
