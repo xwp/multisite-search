@@ -79,13 +79,13 @@ class Index {
 		$data = array(
 			'blog_id'               => $blog_id,
 			'post_id'               => $post->ID,
-			'url'                   => \apply_filters( 'mss_index_url', $post->guid, $post ),
+			'url'                   => \apply_filters( 'mss_index_url', $post->guid, $post, $blog_id ),
 			'slug'                  => $post->post_name,
 			'post_title'            => $post->post_title,
-			'post_content'          => str_replace( "\n\n", "\n", wp_strip_all_tags( do_shortcode( $post->post_content ) ) ),
+			'post_content'          => $this->cleanup_content( $post->post_content ),
 			'post_type'             => $post->post_type,
-			'required_capabilities' => \apply_filters( 'mss_index_required_capabilities', '', $post ),
-			'meta'                  => \apply_filters( 'mss_index_meta', '', $post ),
+			'required_capabilities' => \apply_filters( 'mss_index_required_capabilities', '', $post, $blog_id ),
+			'meta'                  => \apply_filters( 'mss_index_meta', '', $post, $blog_id ),
 		);
 
 		$where = array(
@@ -137,5 +137,30 @@ class Index {
 		}
 
 		restore_current_blog();
+	}
+
+	/**
+	 * Remove line feeds, spaces, etc.
+	 *
+	 * @param string $content The content.
+	 * @param bool   $do_shortcodes Determine if we should expand shortcodes.
+	 * @return string
+	 */
+	private function cleanup_content( $content, $do_shortcodes = true ) {
+
+		if ( $do_shortcodes ) {
+			$content = do_shortcode( $content );
+		}
+
+		// Strip tags.
+		$content = wp_strip_all_tags( $content );
+
+		// Cleanup spaces.
+		$content = preg_replace( '/(\s+|(\&nbsp;)+)/m', ' ', $content );
+
+		// Cleanup line feeds.
+		$content = str_replace( "\n\n", "\n", $content );
+
+		return $content;
 	}
 }

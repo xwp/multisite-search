@@ -35,7 +35,7 @@ class Post_Type extends ComponentAbstract {
 	public function index_post( $post_id, $post, $update ) {
 
 		// If this is a revision, don't send the email.
-		if ( wp_is_post_revision( $post_id ) ) {
+		if ( wp_is_post_revision( $post_id ) || 'published' !== $post->post_status ) {
 			return;
 		}
 
