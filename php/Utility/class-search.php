@@ -63,11 +63,15 @@ class Search {
 				"
                 SELECT COUNT(*) FROM $wpdb->multisite_search
 				WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE) AND (
-                    required_capabilities = '' OR
-                    required_capabilities REGEXP %s
+                    page_capabilities = '' OR
+                    page_capabilities REGEXP %s
+                ) AND (
+                    site_capabilities = '' OR
+                    site_capabilities REGEXP %s
                 )
                 ",
 				$keywords,
+				$caps,
 				$caps
 			)
 		);
@@ -78,15 +82,19 @@ class Search {
                 SELECT *, SUM(MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE)) as score
                 FROM $wpdb->multisite_search
                 WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE) AND (
-                    required_capabilities = '' OR
-                    required_capabilities REGEXP %s
+                    page_capabilities = '' OR
+                    page_capabilities REGEXP %s
+                )  AND (
+                    site_capabilities = '' OR
+                    site_capabilities REGEXP %s
                 )
-                GROUP BY blog_id, post_id, url, slug, post_title, post_content, required_capabilities, meta, post_type
+                GROUP BY blog_id, post_id, url, slug, post_title, post_content, page_capabilities, site_capabilities, meta, post_type
                 ORDER BY score DESC
                 LIMIT %d, %d;
                 ",
 				$keywords,
 				$keywords,
+				$caps,
 				$caps,
 				// $wpdb->prepare takes care of sanitization here.
 				$args['page'] * $args['per_page'],

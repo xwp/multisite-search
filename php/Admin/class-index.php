@@ -75,15 +75,16 @@ class Index {
 		Logger::log( "Indexing Site: $blog_id, Post: $post->ID" );
 
 		$data = array(
-			'blog_id'               => $blog_id,
-			'post_id'               => $post->ID,
-			'url'                   => \apply_filters( 'mss_index_url', $post->guid, $post, $blog_id ),
-			'slug'                  => $post->post_name,
-			'post_title'            => $post->post_title,
-			'post_content'          => $this->cleanup_content( $post->post_content ),
-			'post_type'             => $post->post_type,
-			'required_capabilities' => \apply_filters( 'mss_index_required_capabilities', '', $post, $blog_id ),
-			'meta'                  => \apply_filters( 'mss_index_meta', '', $post, $blog_id ),
+			'blog_id'           => $blog_id,
+			'post_id'           => $post->ID,
+			'url'               => \apply_filters( 'mss_index_url', $post->guid, $post->ID, $blog_id ),
+			'slug'              => $post->post_name,
+			'post_title'        => $post->post_title,
+			'post_content'      => $this->cleanup_content( $post->post_content ),
+			'post_type'         => $post->post_type,
+			'page_capabilities' => \apply_filters( 'mss_index_page_capabilities', '', $post->ID, $blog_id ),
+			'site_capabilities' => \apply_filters( 'mss_index_site_capabilities', '', $post->ID, $blog_id ),
+			'meta'              => \apply_filters( 'mss_index_meta', '', $post->ID, $blog_id ),
 		);
 
 		$where = array(

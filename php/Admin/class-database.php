@@ -32,12 +32,14 @@ class Database {
             slug text NOT NULL,
             post_title text NOT NULL,
             post_content longtext NOT NULL,
-            required_capabilities longtext NOT NULL,
+            page_capabilities longtext NOT NULL,
+            site_capabilities longtext NOT NULL,
             meta longtext,
             post_type varchar(20) NOT NULL,
             PRIMARY KEY  (blog_id, post_id),
             FULLTEXT  (post_title,post_content),
-            FULLTEXT  (required_capabilities),
+            FULLTEXT  (page_capabilities),
+			FULLTEXT  (site_capabilities),
             KEY  (post_type)
         ) $chatset_collate;";
 
