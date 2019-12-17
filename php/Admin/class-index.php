@@ -52,14 +52,12 @@ class Index {
 	/**
 	 * Add a given post to the Multisite Search Index.
 	 *
-	 * @param int  $blog_id The site to index.
-	 * @param int  $post_id The post to index.
-	 * @param bool $update Skip insert.
+	 * @param int $blog_id The site to index.
+	 * @param int $post_id The post to index.
 	 *
 	 * @return void
 	 */
-	public function index_post( $blog_id, $post_id, $update = false ) {
-
+	public function index_post( $blog_id, $post_id ) {
 		global $wpdb;
 
 		switch_to_blog( $blog_id );
@@ -110,7 +108,7 @@ class Index {
 			'%s',
 		);
 
-		if ( ! $update && $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		if ( $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->multisite_search,
 			$data,
 			$format
