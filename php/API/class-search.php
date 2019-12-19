@@ -65,7 +65,7 @@ class Search extends ComponentAbstract {
 	 */
 	public function handle_search_request( \WP_REST_Request $r ) {
 		$args = array(
-			'per_page' => ! empty( $r->get_param( 'per_page' ) ) ? $r->get_param( 'per_page' ) : 100,
+			'per_page' => ! empty( $r->get_param( 'per_page' ) ) ? $r->get_param( 'per_page' ) : apply_filters( 'mss_search_per_page', 10 ),
 			'page'     => ! empty( $r->get_param( 'page' ) ) ? $r->get_param( 'page' ) : 0,
 			'q'        => $r->get_param( 'q' ),
 		);

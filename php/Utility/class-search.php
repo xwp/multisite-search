@@ -25,13 +25,15 @@ class Search {
 	public function query(
 		$keywords,
 		$args = array(
-			'per_page' => 100,
+			'per_page' => 0,
 			'page'     => 0,
 		),
 		$caps = ''
 	) {
 
 		global $wpdb;
+
+		$args['per_page'] = empty( $args['per_page'] ) ? apply_filters( 'mss_search_per_page', 10 ) : $args['per_page'];
 
 		$caps = empty( $caps ) ? \MultisiteSearch\Utility\User::get_capabilities() : $caps;
 
@@ -57,6 +59,8 @@ class Search {
 				explode( ' ', $keywords )
 			)
 		);
+
+		$keywords = str_replace( '**', ' ', $keywords );
 
 		$record_count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
