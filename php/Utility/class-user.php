@@ -116,6 +116,12 @@ class User {
 
 		$user_id = empty( $user_id ) ? \get_current_user_id() : (int) $user_id;
 
+		$caps = apply_filters( 'mss_user_capabilities', false, $user_id );
+
+		if ( $caps ) {
+			return $as_string ? implode( $glue, $caps ) : $caps;
+		}
+
 		$cache_key = md5( 'multisite_search_user_meta::' . $user_id );
 
 		$caps = wp_cache_get( $cache_key, 'multisite_search' );
