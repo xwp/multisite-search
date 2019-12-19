@@ -323,7 +323,7 @@ function mss_search_box( $attributes, $echo = true ) {
 
 	$nonce = wp_create_nonce();
 	$nonce = sprintf(
-		'<input type="hidden" id="_wpnonce" name="_wpnonce" value="%s">',
+		'<input type="hidden" name="_wpnonce" value="%s">',
 		$nonce
 	);
 
