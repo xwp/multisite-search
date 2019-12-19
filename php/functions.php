@@ -136,7 +136,7 @@ function mss_render_search_result( $result, $css_prefix = 'mss-results', $show_s
 	);
 
 	if ( $echo ) {
-		echo $output;
+		mss_echo( $output );
 	}
 
 	return $output;
@@ -172,7 +172,7 @@ function mss_render_no_results( $keywords, $css_prefix = 'mss-results', $echo = 
 	$output = \wp_kses_post( $html );
 
 	if ( $output ) {
-		echo \wp_kses_post( $html );
+		mss_echo( $html );
 	}
 
 	return $output;
@@ -246,15 +246,17 @@ function mss_render_results_pagination( $query, $css_prefix = 'mss-results', $li
 	);
 
 	$links = '';
+	$nonce = wp_create_nonce();
 	for ( $i = $left; $i <= $right; $i++ ) {
 		$links = sprintf(
-			'%s<a class="%s__result-pagination-link mss__result-pagination-link %s" href="?search=%s&per_page=%s&page=%s"> %s </a>',
+			'%s<a class="%s__result-pagination-link mss__result-pagination-link %s" href="?search=%s&per_page=%s&page=%s&_wpnonce=%s"> %s </a>',
 			$links,
 			$css_prefix,
 			$current_page === $i ? 'active' : '',
 			$query['keywords'],
 			$query['per_page'],
 			$i,
+			$nonce,
 			( $i + 1 )
 		);
 	}
@@ -272,7 +274,7 @@ function mss_render_results_pagination( $query, $css_prefix = 'mss-results', $li
 	);
 
 	if ( $echo ) {
-		echo $output;
+		mss_echo( $output );
 	}
 
 	return $output;
@@ -319,16 +321,22 @@ function mss_search_box( $attributes, $echo = true ) {
 		);
 	}
 
+	$nonce = wp_create_nonce();
+	$nonce = sprintf(
+		'<input type="hidden" id="_wpnonce" name="_wpnonce" value="%s">',
+		$nonce
+	);
+
 	$form = sprintf(
 		'<div class="%s__wrapper"><form class="%s__form mss-search__form" role="search" method="get" action="%s">%s</form></div>',
 		$base_class,
 		$base_class,
 		esc_url( home_url( '/' ) ),
-		$label . $input . $button
+		$nonce . $label . $input . $button
 	);
 
 	if ( $echo ) {
-		echo $form;
+		mss_echo( $form );
 	}
 
 	return $form;
@@ -340,6 +348,19 @@ function mss_search_box( $attributes, $echo = true ) {
  * @return array
  */
 function mss_get_search_variables() {
+
+	$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+
+	$default = array(
+		'q'        => '',
+		'page'     => 0,
+		'per_page' => 0,
+	);
+
+	if ( ! wp_verify_nonce( $nonce ) ) {
+		return $default;
+	}
+
 	return array(
 		'q'        => isset( $_GET['search'] ) ? sanitize_text_field( wp_unslash( $_GET['search'] ) ) : '',
 		'page'     => isset( $_GET['page'] ) ? (int) $_GET['page'] : 0,
@@ -358,7 +379,7 @@ function mss_get_search_variables() {
  */
 function mss_limit_words( $words, $limit = 0, $append = ' &hellip;' ) {
 	$limit = empty( $limit ) ? apply_filters( 'mss_search_result_body_word_limit', 30 ) : $limit;
-	$limit = $limit + 1;
+	++$limit;
 	$words = explode( ' ', $words, $limit );
 	array_pop( $words );
 
@@ -385,4 +406,53 @@ function mss_get_safe_link( $url, $title ) {
 		esc_url_raw( $url ),
 		esc_html( $title )
 	);
+}
+
+/**
+ * Safe echo.
+ *
+ * @param string $input The input to output.
+ * @return void
+ */
+function mss_echo( $input ) {
+
+	$allowed_atts = array(
+		'align'      => array(),
+		'class'      => array(),
+		'type'       => array(),
+		'id'         => array(),
+		'dir'        => array(),
+		'lang'       => array(),
+		'style'      => array(),
+		'xml:lang'   => array(),
+		'src'        => array(),
+		'alt'        => array(),
+		'href'       => array(),
+		'rel'        => array(),
+		'rev'        => array(),
+		'target'     => array(),
+		'novalidate' => array(),
+		'type'       => array(),
+		'value'      => array(),
+		'name'       => array(),
+		'tabindex'   => array(),
+		'action'     => array(),
+		'method'     => array(),
+		'for'        => array(),
+		'width'      => array(),
+		'height'     => array(),
+		'data'       => array(),
+		'title'      => array(),
+	);
+
+	$allowed = array();
+
+	$allowed['form']   = $allowed_atts;
+	$allowed['label']  = $allowed_atts;
+	$allowed['input']  = $allowed_atts;
+	$allowed['hidden'] = $allowed_atts;
+	$allowed['button'] = $allowed_atts;
+
+	$allowed = array_merge( $allowed, wp_kses_allowed_html( 'post' ) );
+	echo wp_kses( $input, $allowed );
 }

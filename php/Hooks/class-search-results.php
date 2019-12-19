@@ -29,7 +29,7 @@ class Search_Results extends ComponentAbstract {
 					return $template;
 				}
 
-				if ( ! empty( $_GET['search'] ) ) {
+				if ( ! empty( $_GET['search'] ) && ! empty( $_GET['_wpnonce'] ) && \wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) ) ) {
 					$results_template = \locate_template(
 						array(
 							'multisite-search-results.php',
