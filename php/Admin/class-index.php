@@ -27,6 +27,12 @@ class Index {
 	 */
 	public function index_site( $blog_id, $post_type = array( 'post', 'page' ), $page = 0, $posts_per_page = 100 ) {
 
+		// Provide an array of site IDs to skip for indexing.
+		$skipped_sites = apply_filters( 'mss_index_skipped_sites', array() );
+		if ( \in_array( $blog_id, $skipped_sites, true ) ) {
+			return;
+		}
+
 		global $wpdb;
 		// Index the given blog.
 		switch_to_blog( $blog_id );
