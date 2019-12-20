@@ -49,17 +49,6 @@ class Search {
 		// Convert capabilities for REGEXP.
 		$caps = '(' . str_replace( ',', '|', $caps ) . ')';
 
-		// Make terms a bit more fuzzy.
-		$keywords = implode(
-			' ',
-			array_map(
-				function( $keyword ) {
-					return "*$keyword*";
-				},
-				explode( ' ', $keywords )
-			)
-		);
-
 		$keywords = str_replace( '**', ' ', $keywords );
 
 		$record_count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
@@ -103,17 +92,6 @@ class Search {
 				// $wpdb->prepare takes care of sanitization here.
 				$args['page'] * $args['per_page'],
 				$args['per_page']
-			)
-		);
-
-		// Make terms a bit less fuzzy.
-		$keywords = implode(
-			' ',
-			array_map(
-				function( $keyword ) {
-					return trim( $keyword, '*' );
-				},
-				explode( ' ', $keywords )
 			)
 		);
 
