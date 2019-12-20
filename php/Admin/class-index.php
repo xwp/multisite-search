@@ -29,7 +29,8 @@ class Index {
 
 		// Provide an array of site IDs to skip for indexing.
 		$skipped_sites = apply_filters( 'mss_index_skipped_sites', array() );
-		if ( \in_array( $blog_id, $skipped_sites, true ) ) {
+
+		if ( \in_array( (int) $blog_id, $skipped_sites, true ) ) {
 			return;
 		}
 
