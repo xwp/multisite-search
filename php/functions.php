@@ -198,6 +198,7 @@ function mss_render_results_pagination( $query, $css_prefix = 'mss-results', $li
 	$current_page = (int) $query['page'];
 	$last_page    = (int) ceil( (int) $query['count'] / (int) $query['per_page'] ) - 1;
 	$offset       = (int) ceil( $limit / 2 ) - 1;
+	$nonce        = wp_create_nonce();
 
 	$left  = $current_page - $offset;
 	$right = $current_page + $offset;
@@ -214,11 +215,12 @@ function mss_render_results_pagination( $query, $css_prefix = 'mss-results', $li
 	}
 
 	$left_arrow = sprintf(
-		'<a class="%s__result-pagination-link mss__result-pagination-link" href="?search=%s&per_page=%s&page=%s">%s</a>',
+		'<a class="%s__result-pagination-link mss__result-pagination-link" href="?search=%s&per_page=%s&page=%s&_wpnonce=%s">%s</a>',
 		$css_prefix,
 		$query['keywords'],
 		$query['per_page'],
 		$current_page - 1,
+		$nonce,
 		'&lt;'
 	);
 
@@ -230,11 +232,12 @@ function mss_render_results_pagination( $query, $css_prefix = 'mss-results', $li
 	);
 
 	$right_arrow = sprintf(
-		'<a class="%s__result-pagination-link mss__result-pagination-link" href="?search=%s&per_page=%s&page=%s">%s</a>',
+		'<a class="%s__result-pagination-link mss__result-pagination-link" href="?search=%s&per_page=%s&page=%s&_wpnonce=%s">%s</a>',
 		$css_prefix,
 		$query['keywords'],
 		$query['per_page'],
 		$current_page + 1,
+		$nonce,
 		'&gt;'
 	);
 
@@ -246,7 +249,6 @@ function mss_render_results_pagination( $query, $css_prefix = 'mss-results', $li
 	);
 
 	$links = '';
-	$nonce = wp_create_nonce();
 	for ( $i = $left; $i <= $right; $i++ ) {
 		$links = sprintf(
 			'%s<a class="%s__result-pagination-link mss__result-pagination-link %s" href="?search=%s&per_page=%s&page=%s&_wpnonce=%s"> %s </a>',
