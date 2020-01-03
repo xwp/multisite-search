@@ -35,7 +35,8 @@ class Search {
 
 		$args['per_page'] = empty( $args['per_page'] ) ? apply_filters( 'mss_search_per_page', 10 ) : $args['per_page'];
 
-		$caps = empty( $caps ) ? \MultisiteSearch\Utility\User::get_capabilities() : $caps;
+		$user_id = \get_current_user_id();
+		$caps    = empty( $caps ) ? \MultisiteSearch\Utility\User::get_capabilities() : $caps;
 
 		/**
 		 * We need at least an site admin cap if its empty to avoid protected content from showing.
@@ -46,9 +47,18 @@ class Search {
 			$caps = 'manage_sites';
 		}
 
-		// Convert capabilities for REGEXP.
-		$caps = '(' . str_replace( ',', '|', $caps ) . ')';
+		/**
+		 * Escalated users can bypass page and site capabilities.
+		 */
+		$escalated_caps = false;
+		if ( ! empty( $user_id ) ) {
+			$escalated_caps = \user_can( $user_id, 'manage_sites' ) || \user_can( $user_id, 'manage_options' );
+		}
+		$escalated_caps = apply_filters( 'mss_search_escalated_caps', $escalated_caps );
 
+		// Convert capabilities for REGEXP.
+		$caps     = '(' . str_replace( ',', '|', $caps ) . ')';
+		$caps     = $escalated_caps ? '(.*)' : $caps;
 		$keywords = str_replace( '**', ' ', $keywords );
 
 		$record_count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
