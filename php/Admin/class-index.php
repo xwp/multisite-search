@@ -38,8 +38,9 @@ class Index {
 		// Index the given blog.
 		switch_to_blog( $blog_id );
 		$args = array(
-			'post_status' => array( 'publish' ),
-			'post_type'   => $post_type,
+			'post_status'    => array( 'publish' ),
+			'post_type'      => $post_type,
+			'posts_per_page' => -1,
 		);
 
 		$query = new \WP_Query( $args );
