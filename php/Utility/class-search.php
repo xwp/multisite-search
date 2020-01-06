@@ -65,7 +65,7 @@ class Search {
 			$wpdb->prepare(
 				"
                 SELECT COUNT(*) FROM $wpdb->multisite_search
-				WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE) AND (
+				WHERE MATCH (post_title,post_content) AGAINST (%s) AND (
                     page_capabilities = '' OR
                     page_capabilities REGEXP %s
                 ) AND (
@@ -82,9 +82,9 @@ class Search {
 		$posts = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
 				"
-                SELECT *, SUM(MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE)) as score
+                SELECT *, SUM(MATCH (post_title,post_content) AGAINST (%s)) as score
                 FROM $wpdb->multisite_search
-                WHERE MATCH (post_title,post_content) AGAINST (%s IN BOOLEAN MODE) AND (
+                WHERE MATCH (post_title,post_content) AGAINST (%s) AND (
                     page_capabilities = '' OR
                     page_capabilities REGEXP %s
                 )  AND (
