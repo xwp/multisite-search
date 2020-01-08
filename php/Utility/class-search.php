@@ -61,45 +61,57 @@ class Search {
 		$caps     = $escalated_caps ? '(.*)' : $caps;
 		$keywords = str_replace( '**', ' ', $keywords );
 
+		$priority_match = $wpdb->prepare(
+			'MATCH (priority_keywords) AGAINST (%s)',
+			$keywords
+		);
+
+		$content_match = $wpdb->prepare(
+			'MATCH (post_title,post_content) AGAINST (%s)',
+			$keywords
+		);
+
+		$capabilities_match = $wpdb->prepare(
+			"
+			(
+				page_capabilities = '' OR
+				page_capabilities REGEXP %s
+			) AND (
+				site_capabilities = '' OR
+				site_capabilities REGEXP %s
+			)
+			",
+			$caps,
+			$caps
+		);
+
 		$record_count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
-				"
-                SELECT COUNT(*) FROM $wpdb->multisite_search
-				WHERE MATCH (post_title,post_content) AGAINST (%s) AND (
-                    page_capabilities = '' OR
-                    page_capabilities REGEXP %s
-                ) AND (
-                    site_capabilities = '' OR
-                    site_capabilities REGEXP %s
-                )
-                ",
-				$keywords,
-				$caps,
-				$caps
+				"SELECT COUNT(*) FROM $wpdb->multisite_search " .
+				// These were prepared above.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"WHERE ( $priority_match OR $content_match ) AND $capabilities_match " .
+				// This doesn't do anything, but need something that requires a placeholder
+				// so that $wpdb::prepare() doesn't yell at us.
+				'LIMIT %d, %d;',
+				$args['page'] * $args['per_page'],
+				$args['per_page']
 			)
 		);
 
 		$posts = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
-				"
-                SELECT *, SUM(MATCH (post_title,post_content) AGAINST (%s)) as score
-                FROM $wpdb->multisite_search
-                WHERE MATCH (post_title,post_content) AGAINST (%s) AND (
-                    page_capabilities = '' OR
-                    page_capabilities REGEXP %s
-                )  AND (
-                    site_capabilities = '' OR
-                    site_capabilities REGEXP %s
-                )
-                GROUP BY blog_id, post_id, url, slug, post_title, post_content, page_capabilities, site_capabilities, meta, post_type
-                ORDER BY score DESC
+				// These were prepared above.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT *, SUM($priority_match OR $content_match) as score " .
+				"FROM $wpdb->multisite_search " .
+				// These were prepared above.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"WHERE ( $priority_match OR $content_match ) AND $capabilities_match " .
+				'GROUP BY priority_keywords, blog_id, post_id, url, slug, post_title, post_content, page_capabilities, site_capabilities, meta, post_type
+                ORDER BY priority_keywords DESC, score DESC
                 LIMIT %d, %d;
-                ",
-				$keywords,
-				$keywords,
-				$caps,
-				$caps,
-				// $wpdb->prepare takes care of sanitization here.
+                ',
 				$args['page'] * $args['per_page'],
 				$args['per_page']
 			)
