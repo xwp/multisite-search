@@ -95,6 +95,7 @@ $wpdb->multisite_search = $wpdb->base_prefix . 'multisite_search';
  * Register plugin components.
  */
 multisite_search()
+	->register_component( new \MultisiteSearch\Admin\Priority_Keywords_Meta() )
 	->register_component( new \MultisiteSearch\API\Search() )
 	->register_component( new \MultisiteSearch\Hooks\Post_Type() )
 	->register_component( new \MultisiteSearch\Hooks\Search_Results() )

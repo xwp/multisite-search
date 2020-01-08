@@ -89,6 +89,7 @@ class Index {
 			'slug'              => $post->post_name,
 			'post_title'        => $post->post_title,
 			'post_content'      => $this->cleanup_content( $post->post_content ),
+			'priority_keywords' => \get_post_meta( $post->ID, 'mss_priority_keywords', true ),
 			'post_type'         => $post->post_type,
 			'page_capabilities' => \apply_filters( 'mss_index_page_capabilities', '', $post->ID, $blog_id ),
 			'site_capabilities' => \apply_filters( 'mss_index_site_capabilities', '', $post->ID, $blog_id ),
@@ -108,6 +109,7 @@ class Index {
 		$format = array(
 			'%d',
 			'%d',
+			'%s',
 			'%s',
 			'%s',
 			'%s',
