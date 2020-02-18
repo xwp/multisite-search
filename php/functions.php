@@ -81,6 +81,9 @@ function mss_render_results( $results, $css_prefix = 'mss-results', $pagination_
  */
 function mss_render_search_result( $result, $css_prefix = 'mss-results', $show_sitename = true, $show_url = false, $echo = true ) {
 
+	// Global, overall result filter.
+	$result = apply_filters( 'mss_render_search_result', $result );
+
 	$title = apply_filters(
 		'mss_render_search_result_title',
 		sprintf(
