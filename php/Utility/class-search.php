@@ -85,36 +85,48 @@ class Search {
 			$caps
 		);
 
-		$record_count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM $wpdb->multisite_search " .
-				// These were prepared above.
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"WHERE ( $priority_match OR $content_match ) AND $capabilities_match " .
-				// This doesn't do anything, but need something that requires a placeholder
-				// so that $wpdb::prepare() doesn't yell at us.
-				'LIMIT %d, %d;',
-				$args['page'] * $args['per_page'],
-				$args['per_page']
-			)
+		$sites_match = null;
+		$sites       = apply_filters( 'mss_search_blog_ids', array() );
+		// Make sure they are all ints.
+		$sites = array_map( 'intval', $sites );
+		$sites = array_filter( $sites );
+		if ( ! empty( $sites ) ) {
+			$sites_match = $wpdb->prepare(
+				'AND blog_id IN(' . implode( ', ', array_fill( 0, count( $sites ), '%d' ) ) . ')',
+				$sites
+			);
+		}
+		$count_q      = $wpdb->prepare(
+			"SELECT COUNT(*) FROM $wpdb->multisite_search " .
+			// These were prepared above.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"WHERE ( $priority_match OR $content_match ) AND $capabilities_match $sites_match" .
+			// This doesn't do anything, but need something that requires a placeholder
+			// so that $wpdb::prepare() doesn't yell at us.
+			'LIMIT %d, %d;',
+			0,
+			$args['per_page']
 		);
-
-		$posts = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			$wpdb->prepare(
-				// These were prepared above.
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT *, SUM($priority_match OR $content_match) as score " .
-				"FROM $wpdb->multisite_search " .
-				// These were prepared above.
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"WHERE ( $priority_match OR $content_match ) AND $capabilities_match " .
-				'GROUP BY priority_keywords, blog_id, post_id, url, slug, post_title, post_content, page_capabilities, site_capabilities, meta, post_type
+		$record_count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$count_q
+		);
+		$query        = $wpdb->prepare(
+		// These were prepared above.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT *, SUM($priority_match OR $content_match) as score " .
+			"FROM $wpdb->multisite_search " .
+			// These were prepared above.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"WHERE ( $priority_match OR $content_match ) AND $capabilities_match $sites_match  " .
+			'GROUP BY priority_keywords, blog_id, post_id, url, slug, post_title, post_content, page_capabilities, site_capabilities, meta, post_type
                 ORDER BY priority_keywords DESC, score DESC
                 LIMIT %d, %d;
                 ',
-				$args['page'] * $args['per_page'],
-				$args['per_page']
-			)
+			$args['page'] * $args['per_page'],
+			$args['per_page']
+		);
+		$posts        = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$query
 		);
 
 		return array(
