@@ -102,7 +102,7 @@ class Search {
 		$sites = array_filter( $sites );
 		if ( ! empty( $sites ) ) {
 			$sites_match = $wpdb->prepare(
-				'AND blog_id IN(' . implode( ', ', array_fill( 0, count( $sites ), '%d' ) ) . ')',
+				'AND blog_id IN(' . $this->generate_dynamic_placeholders( $sites, 'integer' ) . ')',
 				$sites
 			);
 		}
