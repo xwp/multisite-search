@@ -41,6 +41,6 @@ class Post_Type extends ComponentAbstract {
 
 		$blog_id = \get_current_blog_id();
 		$indexer = new \MultisiteSearch\Admin\Index();
-		$indexer->index_post( $blog_id, $post, $update );
+		$indexer->index_post( $blog_id, $post );
 	}
 }
