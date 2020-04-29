@@ -63,12 +63,13 @@ class Index {
 	/**
 	 * Add a given post to the Multisite Search Index.
 	 *
-	 * @param int $blog_id The site to index.
-	 * @param int $post_id The post to index.
+	 * @param int  $blog_id The site to index.
+	 * @param int  $post_id The post to index.
+	 * @param bool $validated Whether post type has been validated.
 	 *
 	 * @return void
 	 */
-	public function index_post( $blog_id, $post_id ) {
+	public function index_post( $blog_id, $post_id, $validated = false ) {
 		global $wpdb;
 
 		switch_to_blog( $blog_id );
@@ -79,6 +80,13 @@ class Index {
 			$post = get_post( (int) $post_id );
 		}
 
+		// This validation only runs when wp_insert_post hook is triggered.
+		if ( ! $validated ) { 
+			if ( ! $this->do_index_post( $post->post_type ) ) {
+				return;
+			}
+		}
+		
 		if ( \is_wp_error( $post ) ) {
 			return;
 		}
@@ -174,5 +182,17 @@ class Index {
 		$content = str_replace( "\n\n", "\n", $content );
 
 		return $content;
+	}
+
+	/**
+	 * Determines whether post is allowed to be indexed by cross-checking its post type.
+	 *
+	 * @param string|array $type The Post Type.
+	 * @return bool
+	 */
+	private function do_index_post( $type ) {
+		$post_types = apply_filters( 'mss_index_include_post_types', array( 'post', 'page' ) );
+
+		return in_array( $type, $post_types, true );
 	}
 }
