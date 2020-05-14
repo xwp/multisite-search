@@ -8,6 +8,8 @@
 
 namespace MultisiteSearch\Utility;
 
+use \InvalidArgumentException;
+
 /**
  * Consumable Search object.
  */
@@ -92,7 +94,7 @@ class Search {
 		$sites = array_filter( $sites );
 		if ( ! empty( $sites ) ) {
 			$sites_match = $wpdb->prepare(
-				'AND blog_id IN(' . implode( ', ', array_fill( 0, count( $sites ), '%d' ) ) . ')',
+				'AND blog_id IN(' . $this->generate_dynamic_placeholders( $sites, 'integer' ) . ')',
 				$sites
 			);
 		}
@@ -100,7 +102,7 @@ class Search {
 			"SELECT COUNT(*) FROM $wpdb->multisite_search " .
 			// These were prepared above.
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"WHERE ( $priority_match OR $content_match ) AND $capabilities_match $sites_match" .
+			"WHERE ( $priority_match OR $content_match ) AND $capabilities_match $sites_match " .
 			// This doesn't do anything, but need something that requires a placeholder
 			// so that $wpdb::prepare() doesn't yell at us.
 			'LIMIT %d, %d;',
@@ -117,7 +119,7 @@ class Search {
 			"FROM $wpdb->multisite_search " .
 			// These were prepared above.
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"WHERE ( $priority_match OR $content_match ) AND $capabilities_match $sites_match  " .
+			"WHERE ( $priority_match OR $content_match ) AND $capabilities_match $sites_match " .
 			'GROUP BY priority_keywords, blog_id, post_id, url, slug, post_title, post_content, page_capabilities, site_capabilities, meta, post_type
                 ORDER BY priority_keywords DESC, score DESC
                 LIMIT %d, %d;
@@ -138,5 +140,50 @@ class Search {
 			),
 			'entries' => $posts,
 		);
+	}
+
+	/**
+	 * Generate dynamic number of placeholders for $wpdb->prepare().
+	 *
+	 * @param array  $arr An array of values whose length
+	 *                    will determine the number of placeholders to generate.
+	 * @param string $type Must be either 'string', 'integer' or 'float.
+	 *
+	 * @return string $placeholders sprintf()-like placeholders
+	 *
+	 * @throws InvalidArgumentException Provided array was invalid.
+	 * @throws InvalidArgumentException Provided placeholder type was invalid.
+	 */
+	public function generate_dynamic_placeholders( $arr, $type ) {
+
+		if ( ! is_array( $arr ) || empty( $arr ) ) {
+			throw new InvalidArgumentException( __( 'Invalid array of values.', 'multisite-search' ) );
+		}
+
+		switch ( $type ) {
+			case 'string':
+				$placeholder_type = '%s';
+				break;
+
+			case 'integer':
+				$placeholder_type = '%d';
+				break;
+
+			case 'float':
+				$placeholder_type = '%f';
+				break;
+
+			default:
+				$placeholder_type = '';
+				break;
+		}
+
+		if ( ! $type || ! $placeholder_type ) {
+			throw new InvalidArgumentException( __( 'Invalid placeholder type.', 'multisite-search' ) );
+		}
+
+		$placeholders = implode( ', ', array_fill( 0, count( $arr ), $placeholder_type ) );
+
+		return $placeholders;
 	}
 }
