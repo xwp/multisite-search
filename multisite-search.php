@@ -97,7 +97,7 @@ $wpdb->multisite_search = $wpdb->base_prefix . 'multisite_search';
 multisite_search()
 	->register_component( new \MultisiteSearch\Admin\Priority_Keywords_Meta() )
 	->register_component( new \MultisiteSearch\API\Search() )
-	->register_component( new \MultisiteSearch\Hooks\Post_Type() )
+	->register_component( new \MultisiteSearch\Hooks\Post_Type( new \MultisiteSearch\Admin\Index() ) )
 	->register_component( new \MultisiteSearch\Hooks\Search_Results() )
 	->register_component( new \MultisiteSearch\View\Search_Box() )
 	->register_component( new \MultisiteSearch\View\Network_Admin_Menu() );

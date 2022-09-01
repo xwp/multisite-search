@@ -9,12 +9,28 @@
 namespace MultisiteSearch\Hooks;
 
 use MultisiteSearch\ComponentAbstract;
+use MultisiteSearch\IndexerInterface;
 
 /**
  * Class Post_Type
  */
 class Post_Type extends ComponentAbstract {
-
+	/**
+	 * Instance of the Indexer component.
+	 *
+	 * @var IndexerInterface
+	 */
+	private $indexer;
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param IndexerInterface $indexer Indexer.
+	 */
+	public function __construct( IndexerInterface $indexer ) {
+		$this->indexer = $indexer;
+	}
+	
 	/**
 	 * Register hooks for this view.
 	 *
@@ -58,7 +74,7 @@ class Post_Type extends ComponentAbstract {
 		}
 
 		$blog_id = \get_current_blog_id();
-		$indexer = new \MultisiteSearch\Admin\Index();
-		$indexer->index_post( $blog_id, $post );
+		
+		$this->indexer->index_post( $blog_id, $post );
 	}
 }

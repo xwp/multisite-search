@@ -8,12 +8,14 @@
 
 namespace MultisiteSearch\Admin;
 
+use \MultisiteSearch\IndexerInterface;
 use \MultisiteSearch\Utility\Logger;
+
 
 /**
  * Database maintainance class.
  */
-class Index {
+class Index implements IndexerInterface {
 
 	/**
 	 * Add a given site to the Multisite Search Index.
