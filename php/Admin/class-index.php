@@ -195,4 +195,19 @@ class Index {
 
 		return in_array( $type, $post_types, true );
 	}
+
+	/**
+	 * Remove a post from the index.
+	 * 
+	 * @param int $post_id Post ID.
+	 * 
+	 * @return boolean $result.
+	 */
+	public function remove_post_from_index( $post_id ) {
+		global $wpdb;
+
+		$result = $wpdb->delete( $wpdb->multisite_search, array( 'post_id' => $post_id ) ); //phpcs:ignore
+
+		return $result;
+	}
 }
