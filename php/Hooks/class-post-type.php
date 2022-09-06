@@ -9,12 +9,28 @@
 namespace MultisiteSearch\Hooks;
 
 use MultisiteSearch\ComponentAbstract;
+use MultisiteSearch\IndexerInterface;
 
 /**
  * Class Post_Type
  */
 class Post_Type extends ComponentAbstract {
-
+	/**
+	 * Instance of the Indexer component.
+	 *
+	 * @var IndexerInterface
+	 */
+	private $indexer;
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param IndexerInterface $indexer Indexer.
+	 */
+	public function __construct( IndexerInterface $indexer ) {
+		$this->indexer = $indexer;
+	}
+	
 	/**
 	 * Register hooks for this view.
 	 *
@@ -22,6 +38,24 @@ class Post_Type extends ComponentAbstract {
 	 */
 	public function register_hooks() {
 		add_action( 'wp_insert_post', array( $this, 'index_post' ), 10, 3 );
+		add_action( 'transition_post_status', array( $this, 'remove_post' ), 10, 3 );
+	}
+
+	/**
+	 * Remove a post when its status is no longer published.
+	 * 
+	 * @param string  $new_status new post status.
+	 * @param string  $old_status old post status.
+	 * @param WP_Post $post_obj WP_Post object.
+	 * 
+	 * @return boolean
+	 */
+	public function remove_post( $new_status, $old_status, $post_obj ) {
+		if ( $new_status === $old_status || 'publish' === $new_status ) {
+			return;
+		}
+
+		return $this->indexer->remove_post_from_index( $post_obj->ID );
 	}
 
 	/**
@@ -40,7 +74,7 @@ class Post_Type extends ComponentAbstract {
 		}
 
 		$blog_id = \get_current_blog_id();
-		$indexer = new \MultisiteSearch\Admin\Index();
-		$indexer->index_post( $blog_id, $post );
+		
+		$this->indexer->index_post( $blog_id, $post );
 	}
 }

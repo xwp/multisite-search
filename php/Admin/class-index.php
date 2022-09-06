@@ -8,12 +8,14 @@
 
 namespace MultisiteSearch\Admin;
 
+use \MultisiteSearch\IndexerInterface;
 use \MultisiteSearch\Utility\Logger;
+
 
 /**
  * Database maintainance class.
  */
-class Index {
+class Index implements IndexerInterface {
 
 	/**
 	 * Add a given site to the Multisite Search Index.
@@ -194,5 +196,20 @@ class Index {
 		$post_types = apply_filters( 'mss_index_include_post_types', array( 'post', 'page' ) );
 
 		return in_array( $type, $post_types, true );
+	}
+
+	/**
+	 * Remove a post from the index.
+	 * 
+	 * @param int $post_id Post ID.
+	 * 
+	 * @return boolean $result.
+	 */
+	public function remove_post_from_index( $post_id ) {
+		global $wpdb;
+
+		$result = $wpdb->delete( $wpdb->multisite_search, array( 'post_id' => $post_id ) ); //phpcs:ignore
+
+		return $result;
 	}
 }
