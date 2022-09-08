@@ -16,7 +16,6 @@ use \MultisiteSearch\Utility\Logger;
  * Database maintainance class.
  */
 class Index implements IndexerInterface {
-
 	/**
 	 * Add a given site to the Multisite Search Index.
 	 *
@@ -30,7 +29,7 @@ class Index implements IndexerInterface {
 	public function index_site( $blog_id, $post_type = array( 'post', 'page' ), $page = 0, $posts_per_page = 100 ) {
 
 		// Provide an array of site IDs to skip for indexing.
-		$skipped_sites = apply_filters( 'mss_index_skipped_sites', array() );
+		$skipped_sites = mss_get_skipped_sites();
 		
 		// Provide an array of post types for indexing.
 		$post_types = apply_filters( 'mss_index_include_post_types', $post_type );
