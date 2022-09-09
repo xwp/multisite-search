@@ -461,3 +461,10 @@ function mss_echo( $input ) {
 	$allowed = array_merge( $allowed, wp_kses_allowed_html( 'post' ) );
 	echo wp_kses( $input, $allowed );
 }
+
+/**
+ * Get a list of site IDs that should not be indexed.
+ */
+function mss_get_skipped_sites() {
+	return apply_filters( 'mss_index_skipped_sites', array() );
+}

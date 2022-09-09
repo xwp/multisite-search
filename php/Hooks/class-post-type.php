@@ -73,7 +73,13 @@ class Post_Type extends ComponentAbstract {
 			return;
 		}
 
-		$blog_id = \get_current_blog_id();
+		$skipped_sites = mss_get_skipped_sites();
+		$blog_id       = \get_current_blog_id();
+
+		// check whether we should skip indexing for current blog id.
+		if ( in_array( $blog_id, $skipped_sites, true ) ) {
+			return;
+		}
 		
 		$this->indexer->index_post( $blog_id, $post );
 	}
